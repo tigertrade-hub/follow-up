@@ -796,6 +796,10 @@ function renderMe(){
       <button class="chip blue" style="padding:8px 12px" onclick="store.set('name','');S.name='';renderWho()">Change</button></div></div>
     <div class="sec">Notifications</div>
     <div class="card" style="padding:14px" id="pushBox">${pushBoxHtml()}</div>
+    <div class="sec">My calendar</div>
+    <div class="card" style="padding:14px" id="calBox"><b>See your tasks in your phone calendar</b>
+      <div class="small muted" style="margin:6px 0 12px">Your due dates appear in your calendar and update by themselves (every few hours). Reminders come as app notifications: a check-in after you start, a heads-up before the deadline, and on the due day.</div>
+      <button class="btn ghost" onclick="calLink()">📅 Add my tasks to my calendar</button></div>
     ${standalone?'':`<div class="sec">Install on your phone</div>
     <div class="card" style="padding:14px;font-size:14px">${ios
       ?'In <b>Safari</b> tap the <b>Share</b> button (square with arrow) → <b>Add to Home Screen</b>.'
@@ -885,6 +889,18 @@ async function testPush(){
   finally{ b.disabled=false; b.textContent='Send me a test'; }
 }
 
+async function calLink(){
+  const box=$('calBox'); box.innerHTML='<div class="muted">Creating your personal calendar link…</div>';
+  try{
+    const r=await api('calLink');
+    const google='https://calendar.google.com/calendar/r?cid='+encodeURIComponent(r.webcal);
+    box.innerHTML=`<b>Choose your calendar</b><div class="small muted" style="margin:6px 0 12px">This link is personal — don't share it.</div>
+      <a class="btn" href="${google}" target="_blank" rel="noopener">Google Calendar (Android)</a>
+      <div style="height:8px"></div><a class="btn ghost" href="${esc(r.webcal)}">iPhone / other calendar</a>
+      <div style="height:8px"></div><button class="btn ghost" onclick="navigator.clipboard.writeText('${esc(r.url)}').then(()=>toast('Link copied ✓'),()=>toast('Copy failed'))">Copy link</button>`;
+  }catch(e){ box.innerHTML=`<div style="color:var(--red)">${esc(e.message)}</div>`; }
+}
+
 /* keep the phone's registration in sync (name / team code changes) */
 async function syncPush(){
   if(pushState()!=='on') return;
@@ -961,6 +977,7 @@ function demoApi(action,p){
     else if(action==='project') r(proj());
     else if(action==='setStatus'){ find().status=p.status; r(proj()); }
     else if(action==='toggleSub'){ find().subtasks[p.index].done=p.done; r(proj()); }
+    else if(action==='calLink') r({ok:true,url:'https://example.com/cal.ics',webcal:'webcal://example.com/cal.ics'});
     else if(action==='addSub'){ find().subtasks.push({text:p.text,done:false}); r(proj()); }
     else if(action==='saveTask'){ const t=p.task; let x=t.id?find():null;
       if(!x){ x={id:String(Math.max(...D.tasks.map(y=>+y.id))+1),status:'Not started',updates:[]}; D.tasks.push(x); p.taskId=x.id; }
