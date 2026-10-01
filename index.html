@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tiger Trade Follow-up</title>
+<meta name="theme-color" content="#1F3864">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TT Follow-up">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{
+  --navy:#1F3864; --blue:#2E75B6; --blue-2:#5EA8E8;
+  --bg:#F3F5F9; --card:#FFFFFF; --ink:#16213A; --ink-2:#56627A; --ink-3:#8A94A8;
+  --line:#E3E8F0; --chip:#EEF2F8;
+  --red:#D64545; --red-bg:#FDECEC; --amber:#C98A0B; --amber-bg:#FDF4E1;
+  --green:#1E9A62; --green-bg:#E5F6EE; --violet:#6B5BD2; --violet-bg:#EFEDFC;
+  --new:#FFF7DB; --shadow:0 1px 2px rgba(22,33,58,.06),0 4px 14px rgba(22,33,58,.06);
+  --hdr:#1F3864; --hdr-ink:#fff;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0E1424; --card:#172036; --ink:#E8EDF7; --ink-2:#A9B4CA; --ink-3:#7A869E;
+    --line:#26314B; --chip:#212C45; --red-bg:#3A1E24; --amber-bg:#3A2F17; --green-bg:#16352A;
+    --violet-bg:#272552; --new:#2D2A16; --shadow:none; --hdr:#141C30;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+  font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+h1,h2,h3,.num{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;margin:0}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
+input,textarea,select{font:inherit;color:var(--ink)}
+a{color:var(--blue)}
+
+/* ── shell: internal scroll so fixed overlays work everywhere ── */
+#app{position:fixed;inset:0;display:flex;flex-direction:column}
+header{background:var(--hdr);color:var(--hdr-ink);padding:calc(env(safe-area-inset-top) + 12px) 16px 14px;
+  display:flex;align-items:center;gap:10px;flex-shrink:0}
+header h1{font-size:18px;font-weight:800;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header .sub{font-size:12px;opacity:.7;font-weight:500}
+.hbtn{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.1);flex-shrink:0}
+.hbtn svg{width:20px;height:20px}
+.spin svg{animation:sp 0.9s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 16px 84px}
+nav.bottom{display:flex;background:var(--card);border-top:1px solid var(--line);
+  padding:6px 8px calc(env(safe-area-inset-bottom) + 6px);flex-shrink:0}
+nav.bottom button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;
+  color:var(--ink-3);font-weight:600;padding:6px 0;position:relative}
+nav.bottom button svg{width:23px;height:23px}
+nav.bottom button.on{color:var(--blue)}
+.dot-badge{position:absolute;top:2px;left:calc(50% + 8px);min-width:17px;height:17px;border-radius:9px;
+  background:var(--red);color:#fff;font-size:10.5px;display:grid;place-items:center;padding:0 4px}
+
+/* ── tabs inside a project ── */
+.tabs{display:flex;gap:6px;background:var(--hdr);padding:0 12px 12px;flex-shrink:0;overflow-x:auto}
+.tabs button{color:rgba(255,255,255,.7);font-weight:600;font-size:13.5px;padding:7px 13px;border-radius:999px;white-space:nowrap}
+.tabs button.on{background:#fff;color:var(--navy)}
+.tabs .cnt{background:var(--red);color:#fff;border-radius:9px;font-size:10.5px;padding:1px 6px;margin-left:4px}
+
+/* ── cards & bits ── */
+.card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.sec{font:700 12px/1 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);
+  margin:20px 2px 10px;display:flex;align-items:center;gap:8px}
+.sec:first-child{margin-top:4px}
+.sec .n{background:var(--chip);color:var(--ink-2);border-radius:8px;padding:3px 7px;letter-spacing:0}
+.sec.red{color:var(--red)} .sec.red .n{background:var(--red-bg);color:var(--red)}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:3px 8px;
+  border-radius:8px;background:var(--chip);color:var(--ink-2);white-space:nowrap}
+.chip.red{background:var(--red-bg);color:var(--red)} .chip.amber{background:var(--amber-bg);color:var(--amber)}
+.chip.green{background:var(--green-bg);color:var(--green)} .chip.violet{background:var(--violet-bg);color:var(--violet)}
+.chip.blue{background:rgba(46,117,182,.12);color:var(--blue)}
+.muted{color:var(--ink-3)} .small{font-size:12.5px}
+.empty{text-align:center;color:var(--ink-3);padding:28px 10px;font-size:14px}
+.empty b{display:block;font:700 16px system-ui,sans-serif;color:var(--ink-2);margin-bottom:4px}
+
+/* project card */
+.pcard{padding:16px;display:flex;gap:14px;align-items:center;width:100%;text-align:left;margin-bottom:12px}
+.pcard h3{font-size:16.5px;font-weight:800;margin-bottom:2px}
+.pcard .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.ring{position:relative;flex-shrink:0}
+.ring .lbl{position:absolute;inset:0;display:grid;place-items:center;font:800 15px system-ui,sans-serif}
+.ring .lbl small{display:block;font:600 9.5px system-ui,sans-serif;color:var(--ink-3);text-align:center;margin-top:-3px}
+
+/* task row */
+.task{display:flex;gap:11px;padding:13px 14px;width:100%;text-align:left;align-items:flex-start}
+.task + .task{border-top:1px solid var(--line)}
+.sdot{width:11px;height:11px;border-radius:50%;margin-top:5px;flex-shrink:0;border:2.5px solid var(--ink-3)}
+.sdot.ip{border-color:var(--blue);background:var(--blue)} .sdot.bl{border-color:var(--red);background:var(--red)}
+.sdot.dn{border-color:var(--green);background:var(--green)}
+.task .t{font-weight:600;font-size:14.5px;line-height:1.35}
+.task .m{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;align-items:center}
+.task.done .t{color:var(--ink-3);text-decoration:line-through}
+.group{overflow:hidden;margin-bottom:12px}
+.ghead{padding:10px 14px;font:700 13px system-ui,sans-serif;color:var(--ink-2);background:var(--chip);display:flex;justify-content:space-between}
+
+/* segmented */
+.seg{display:flex;background:var(--chip);border-radius:12px;padding:3px;margin-bottom:6px}
+.seg button{flex:1;padding:7px 4px;border-radius:9px;font-weight:600;font-size:13px;color:var(--ink-2)}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{padding:12px;border-radius:14px;background:var(--card);border:1px solid var(--line)}
+.stat .num{font-size:22px;font-weight:800}
+.stat .l{font-size:11.5px;color:var(--ink-3);font-weight:600}
+.bar{height:8px;border-radius:5px;background:var(--chip);overflow:hidden;display:flex}
+.bar i{display:block;height:100%}
+.phase{padding:13px 14px}
+.phase + .phase{border-top:1px solid var(--line)}
+.phase .top{display:flex;justify-content:space-between;gap:8px;margin-bottom:7px;font-weight:600;font-size:14px}
+
+/* activity */
+.act{display:flex;gap:11px;padding:12px 14px;width:100%;text-align:left}
+.act + .act{border-top:1px solid var(--line)}
+.act.new{background:var(--new)}
+.aic{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-size:16px;flex-shrink:0;background:var(--chip)}
+.act .t{font-weight:600;font-size:14px}
+.act .d{font-size:13px;color:var(--ink-2);margin-top:2px;word-break:break-word}
+.act .w{font-size:11.5px;color:var(--ink-3);margin-top:4px}
+
+/* forms */
+.field{display:block;width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);font-size:16px}
+.field:focus{outline:none;border-color:var(--blue)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border-radius:13px;
+  background:var(--blue);color:#fff;font-weight:700;font-size:15.5px;text-decoration:none}
+.btn.ghost{background:var(--chip);color:var(--ink)}
+.btn:disabled{opacity:.5}
+.welcome{max-width:420px;margin:0 auto;padding-top:20px}
+.welcome .logo{width:76px;height:76px;border-radius:20px;margin:0 auto 18px;display:block}
+.welcome h2{text-align:center;font-size:22px;margin-bottom:6px}
+.welcome p{text-align:center;color:var(--ink-2);margin:0 0 22px}
+.names{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.names button{padding:13px;border-radius:12px;background:var(--card);border:1.5px solid var(--line);font-weight:600}
+.names button.on{border-color:var(--blue);background:rgba(46,117,182,.1);color:var(--blue)}
+.row{display:flex;align-items:center;justify-content:space-between;padding:14px;gap:10px}
+.row + .row{border-top:1px solid var(--line)}
+.search{position:relative;margin-bottom:10px}
+.chips-scroll{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px}
+.chips-scroll button{padding:6px 12px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:13px;font-weight:600;white-space:nowrap;color:var(--ink-2)}
+.chips-scroll button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+
+/* bottom sheet */
+.scrim{position:fixed;inset:0;background:rgba(10,16,30,.45);opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-height:90%;background:var(--bg);border-radius:20px 20px 0 0;
+  z-index:21;transform:translateY(105%);transition:transform .25s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;
+  max-width:640px;margin:0 auto}
+.sheet.on{transform:none}
+.sheet .grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:8px auto 2px;flex-shrink:0}
+.sheet .body{overflow-y:auto;padding:8px 16px calc(env(safe-area-inset-bottom) + 20px)}
+.sheet h2{font-size:19px;font-weight:800;line-height:1.3;margin:6px 0 10px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;font-size:14px;padding:14px}
+.kv dt{color:var(--ink-3);font-weight:600} .kv dd{margin:0;font-weight:500}
+.status4{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.status4 button{padding:11px;border-radius:12px;background:var(--card);border:1.5px solid var(--line);font-weight:600;font-size:14px;display:flex;align-items:center;gap:8px;justify-content:center}
+.status4 button.on{border-color:currentColor}
+.status4 .ns.on{color:var(--ink-2)} .status4 .ip.on{color:var(--blue);background:rgba(46,117,182,.08)}
+.status4 .bl.on{color:var(--red);background:var(--red-bg)} .status4 .dn.on{color:var(--green);background:var(--green-bg)}
+.sub{display:flex;gap:11px;align-items:flex-start;padding:12px 14px;width:100%;text-align:left}
+.sub + .sub{border-top:1px solid var(--line)}
+.cb{width:22px;height:22px;border-radius:7px;border:2px solid var(--ink-3);flex-shrink:0;display:grid;place-items:center;margin-top:1px}
+.sub.on .cb{background:var(--green);border-color:var(--green)}
+.sub.on span{color:var(--ink-3);text-decoration:line-through}
+.upd{padding:12px 14px}
+.upd + .upd{border-top:1px solid var(--line)}
+.upd .w{font-size:12px;color:var(--ink-3);font-weight:600;margin-bottom:3px}
+.notes{padding:14px;font-size:14px;color:var(--ink-2);white-space:pre-wrap}
+.fab{position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom) + 76px);z-index:15;background:var(--blue);color:#fff;
+  font-weight:700;font-size:15px;padding:14px 20px;border-radius:16px;box-shadow:0 6px 20px rgba(46,117,182,.4)}
+.lbl{display:block;font-size:12.5px;font-weight:600;color:var(--ink-2);margin:14px 2px 6px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+input[type=date].field{min-width:0;width:100%;padding:12px 10px}
+.addrow{display:flex;gap:8px;align-items:center;padding:8px 10px}
+.addrow .field{padding:10px 12px;font-size:15px}
+.field.plain{border-color:transparent;background:transparent;padding:6px 4px}
+.field.plain:focus{border-color:var(--blue);background:var(--card)}
+.xbtn{width:34px;height:34px;border-radius:10px;color:var(--ink-3);font-size:15px;flex-shrink:0}
+select.field{appearance:auto}
+.toast{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom) + 84px);z-index:40;
+  background:var(--ink);color:var(--bg);padding:12px 16px;border-radius:12px;font-weight:600;font-size:14px;
+  transform:translateY(20px);opacity:0;transition:.2s;pointer-events:none;max-width:480px;margin:0 auto}
+.toast.on{transform:none;opacity:1}
+.loading{display:grid;place-items:center;height:60%;color:var(--ink-3)}
+.wide{max-width:720px;margin:0 auto}
+.dep{font-size:12px}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="hdr"></header>
+  <div id="tabs" class="tabs" hidden></div>
+  <main id="main"><div class="loading">Loading…</div></main>
+  <nav class="bottom" id="nav" hidden>
+    <button data-v="home" onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Projects</button>
+    <button data-v="week" onclick="go('week')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M16 2.5v4M8 2.5v4M3 10h18"/><path d="m9 15 2 2 4-4"/></svg>My week</button>
+    <button data-v="feed" onclick="go('feed')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Activity<span class="dot-badge" id="feedBadge" hidden></span></button>
+    <button data-v="me" onclick="go('me')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Me</button>
+  </nav>
+</div>
+<button class="fab" id="fab" hidden onclick="openForm(S.pid,null)">＋ New task</button>
+<div class="scrim" id="scrim" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet"><div class="grab"></div><div class="body" id="sheetBody"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── CONFIG ─────────────────────────────────────────────────────────
+   API_URL = the backend web-app URL (…/exec). Leave '' for demo mode. */
+const API_URL = 'https://script.google.com/macros/s/AKfycbwnjygFXXpj_p1tJtIJk6JvH8rG7ueF3mSpsvpodl1aLyFJJD3uUL8L_1Czpaa-88zj/exec';
+
+/* ── state ── */
+const S = { pin:'', name:'', view:'home', pid:null, tab:'week', boot:null, proj:null,
+            mine:true, q:'', fStatus:'', busy:false, cache:{} };
+const store = {
+  get(k,d){ try{ const v=localStorage.getItem('pmf_'+k); return v==null?d:JSON.parse(v);}catch(e){return d;} },
+  set(k,v){ try{ localStorage.setItem('pmf_'+k,JSON.stringify(v)); }catch(e){} }
+};
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const norm = s => String(s||'').trim().toLowerCase();
+const owners = s => String(s||'').split(/\s*(?:\/|,|&|\+|\band\b)\s*/i).map(x=>x.trim()).filter(Boolean);
+const isMine = t => owners(t.owner).some(o=>norm(o)===norm(S.name));
+
+/* ── API ── */
+async function api(action, params={}, write=false){
+  if(!API_URL) return demoApi(action, params);
+  const body = Object.assign({action, pin:S.pin, actor:S.name, name:S.name}, params);
+  let res;
+  if(write){
+    res = await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});
+  } else {
+    res = await fetch(API_URL+'?'+new URLSearchParams(body).toString());
+  }
+  const j = await res.json();
+  if(!j.ok){ const e=new Error(j.error||'Error'); e.code=j.error; throw e; }
+  return j;
+}
+
+/* ── dates ── */
+const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function todayISO(){ const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); }
+function addD(iso,n){ const p=iso.split('-'); return new Date(Date.UTC(+p[0],p[1]-1,+p[2])+n*864e5).toISOString().slice(0,10); }
+function dowOf(iso){ const p=iso.split('-'); return new Date(Date.UTC(+p[0],p[1]-1,+p[2])).getUTCDay(); }
+function nice(iso){ if(!iso) return '—'; const p=iso.split('-'); return DOW[dowOf(iso)]+' '+(+p[2])+' '+MON[p[1]-1]; }
+function short(iso){ const p=iso.split('-'); return (+p[2])+' '+MON[p[1]-1]; }
+function week(){ const t=todayISO(), dw=dowOf(t)||7, from=addD(t,1-dw); return {from,to:addD(from,6)}; }
+function ago(ts){
+  const t=new Date(ts.replace(' ','T')); const s=(Date.now()-t)/1000;
+  if(isNaN(s)) return ts; if(s<60) return 'just now'; if(s<3600) return Math.floor(s/60)+' min ago';
+  if(s<86400) return Math.floor(s/3600)+' h ago'; if(s<172800) return 'yesterday';
+  return short(ts.slice(0,10));
+}
+function dueChip(t){
+  if(t.status==='Done') return `<span class="chip green">✓ ${short(t.finish)}</span>`;
+  const today=todayISO();
+  if(t.finish<today){ const d=Math.round((Date.parse(today)-Date.parse(t.finish))/864e5);
+    return `<span class="chip red">${d}d late · ${short(t.finish)}</span>`; }
+  if(t.finish===today) return `<span class="chip amber">Due today</span>`;
+  if(t.finish<=week().to) return `<span class="chip amber">Due ${nice(t.finish)}</span>`;
+  return `<span class="chip">Due ${short(t.finish)}</span>`;
+}
+const SCLS={'Not started':'ns','In progress':'ip','Blocked':'bl','Done':'dn'};
+
+/* ── icons ── */
+const I = {
+  refresh:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>',
+  back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
+  ext:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>',
+  check:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>'
+};
+const AIC={new:['🆕','var(--violet-bg)'],status:['🔄','rgba(46,117,182,.12)'],done:['✅','var(--green-bg)'],
+  dates:['📅','var(--amber-bg)'],update:['📝','var(--chip)'],subtask:['☑️','var(--green-bg)'],edit:['✏️','var(--chip)'],deleted:['🗑️','var(--red-bg)']};
+const ALBL={new:'New task',status:'Status changed',done:'Completed',dates:'Dates changed',update:'Progress update',
+  subtask:'Sub-tasks',edit:'Edited',deleted:'Deleted'};
+
+function ring(pct,size=58,stroke=7){
+  const r=(size-stroke)/2, c=2*Math.PI*r, off=c*(1-pct/100);
+  return `<div class="ring" style="width:${size}px;height:${size}px">
+    <svg width="${size}" height="${size}" style="transform:rotate(-90deg)">
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--chip)" stroke-width="${stroke}"/>
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--blue)" stroke-width="${stroke}"
+        stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${off}"/></svg>
+    <div class="lbl"><div>${pct}%${size>70?'<small>done</small>':''}</div></div></div>`;
+}
+
+/* ── seen / new activity ── */
+function seenKey(pid){ return 'seen_'+(pid||'all'); }
+function newCount(list,pid){ const s=store.get(seenKey(pid),''); return list.filter(a=>a.ts>s && norm(a.actor)!==norm(S.name)).length; }
+function markSeen(list,pid){ if(list && list.length) store.set(seenKey(pid), list[0].ts); }
+
+/* ════════════════ BOOT / ONBOARDING ════════════════ */
+function setBoot(b){
+  S.boot=b; S.cache=Object.assign({},b.data||{});
+  if(S.pid && S.cache[S.pid]) S.proj=S.cache[S.pid];
+  store.set('saved',{pin:S.pin,boot:b});
+}
+
+async function boot(){
+  S.pin=store.get('pin',''); S.name=store.get('name','');
+  if(!S.pin){ return renderPin(); }
+  const saved=store.get('saved',null);
+  if(saved && saved.pin===S.pin && saved.boot && saved.boot.data){
+    setBoot(saved.boot);       // show the last known data instantly…
+    start();
+    return refresh(true);      // …and quietly fetch the latest
+  }
+  try{
+    setBoot(await api('bootstrap'));
+  }catch(e){
+    if(e.code==='pin'){ store.set('pin',''); S.pin=''; return renderPin('That team code is not right.'); }
+    return renderError(e);
+  }
+  start();
+}
+
+function start(){
+  if(!S.name || !S.boot.people.some(n=>norm(n)===norm(S.name))) return renderWho();
+  $('nav').hidden=false;
+  syncPush();
+  if(openFromHash()) return;
+  if(location.hash==='#feed'){ history.replaceState(null,'',location.pathname); return go('feed'); }
+  const v=store.get('view','home');
+  if(v==='project' && store.get('pid','')) openProject(store.get('pid',''), store.get('tab','week'));
+  else go(v==='project'?'home':v);
+}
+
+function shell(title, sub, left='', right=''){
+  $('hdr').innerHTML = `${left}<div style="flex:1;min-width:0"><h1>${esc(title)}</h1>${sub?`<div class="sub">${esc(sub)}</div>`:''}</div>${right}`;
+}
+const refreshBtn = () => `<button class="hbtn" id="rbtn" onclick="refresh()" aria-label="Refresh">${I.refresh}</button>`;
+
+function renderPin(msg){
+  $('nav').hidden=true; $('tabs').hidden=true;
+  shell('Tiger Trade','Project Follow-up');
+  $('main').innerHTML = `<div class="welcome">
+    <img class="logo" src="${ICON_DATA}" alt="">
+    <h2>Project Follow-up</h2><p>Enter the Tiger Trade team code to see your projects.</p>
+    <input class="field" id="pin" inputmode="numeric" autocomplete="off" placeholder="Team code" style="text-align:center;letter-spacing:.3em;font-size:20px">
+    ${msg?`<p style="color:var(--red);margin:10px 0 0">${esc(msg)}</p>`:''}
+    <div style="height:14px"></div><button class="btn" onclick="savePin()">Continue</button></div>`;
+  $('pin').addEventListener('keydown',e=>{ if(e.key==='Enter') savePin(); });
+}
+function savePin(){ const v=$('pin').value.trim(); if(!v) return; S.pin=v; store.set('pin',v); boot(); }
+
+function renderWho(){
+  $('nav').hidden=true; $('tabs').hidden=true;
+  shell('Who are you?','Pick your name once — this phone remembers it');
+  const names=S.boot.people.slice().sort((a,b)=>a.localeCompare(b));
+  $('main').innerHTML = `<div class="welcome" style="padding-top:4px">
+    <p>Your name is used to show <b>your</b> tasks and to tell the team who made a change.</p>
+    <div class="names">${names.map(n=>`<button onclick="pickName(this,'${esc(n).replace(/'/g,"\\'")}')">${esc(n)}</button>`).join('')}</div>
+    <p class="small">Name missing? Ask the project manager to add you to the People list.</p></div>`;
+}
+function pickName(el,n){ S.name=n; store.set('name',n); boot(); }
+
+function renderError(e){
+  shell('Tiger Trade','Project Follow-up');
+  $('main').innerHTML = `<div class="empty"><b>Can't reach the project data</b>${esc(e.message||e)}<div style="height:16px"></div>
+    <button class="btn ghost" onclick="boot()">Try again</button></div>`;
+}
+
+/* ════════════════ NAV ════════════════ */
+function go(v){
+  $('fab').hidden=true;
+  S.view=v; store.set('view',v); closeSheet();
+  document.querySelectorAll('nav.bottom button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  $('tabs').hidden=true;
+  $('main').scrollTop=0;
+  ({home:renderHome, week:renderMyWeek, feed:renderFeed, me:renderMe})[v]();
+  updateBadge();
+}
+
+let _refreshing=false;
+async function refresh(quiet){
+  if(_refreshing) return; _refreshing=true;
+  const spin=on=>{ const b=$('rbtn'); if(b) b.classList.toggle('spin',on); };
+  spin(true);
+  try{
+    setBoot(await api('bootstrap'));
+    if(!S.name || !S.boot.people.some(n=>norm(n)===norm(S.name))) return renderWho();
+    redraw();
+  }catch(e){
+    if(e.code==='pin'){ store.set('pin',''); store.set('saved',null); S.pin=''; return renderPin('The team code has changed — please enter the new one.'); }
+    if(!quiet) toast(e.message); else toast('Offline — showing saved data');
+  }
+  finally{ _refreshing=false; spin(false); }
+}
+
+/* re-draw whatever is on screen with fresh data, without closing an open form */
+function redraw(){
+  if(!$('nav') || $('nav').hidden) return;
+  const st=$('main').scrollTop;
+  if(S.view==='project'){ if(S.cache[S.pid]){ S.proj=S.cache[S.pid]; renderProject(); } }
+  else ({home:renderHome, week:renderMyWeek, feed:renderFeed, me:()=>{}})[S.view]();
+  $('main').scrollTop=st;
+  if(S.sheet && !S.form) renderSheet();
+  updateBadge();
+}
+
+function updateBadge(){
+  if(!S.boot) return;
+  const n=newCount(S.boot.activity,null); const b=$('feedBadge');
+  b.hidden=!n || S.view==='feed'; b.textContent=n>9?'9+':n;
+}
+
+/* ════════════════ HOME ════════════════ */
+function renderHome(){
+  const hour=new Date().getHours(); const hi=hour<12?'Good morning':hour<18?'Good afternoon':'Good evening';
+  shell(`${hi}, ${S.name}`, 'Tiger Trade · '+nice(todayISO()), `<img src="${ICON_DATA}" alt="Tiger Trade" style="width:38px;height:38px;border-radius:10px;flex-shrink:0">`, refreshBtn());
+  const ps=S.boot.projects;
+  let h = `<div class="wide"><div class="sec">Projects <span class="n">${ps.length}</span></div>`;
+  if(!ps.length) h += `<div class="card empty"><b>No projects yet</b>Add one in the Projects tab of the tool's Sheet.</div>`;
+  ps.forEach(p=>{
+    if(p.error){ h+=`<div class="card pcard"><div><h3>${esc(p.name)}</h3><div class="small" style="color:var(--red)">${esc(p.error)}</div></div></div>`; return; }
+    const s=p.stats, nn=newCount(S.boot.activity.filter(a=>a.projectId===p.id),p.id);
+    h += `<button class="card pcard" onclick="openProject('${p.id}')">${ring(s.pct)}
+      <div style="flex:1;min-width:0"><h3>${esc(p.name)}</h3>
+      <div class="small muted">PM ${esc(p.pm)} · ${s.done}/${s.total} tasks done</div>
+      <div class="chips">
+        ${s.overdue?`<span class="chip red">${s.overdue} overdue</span>`:''}
+        ${s.dueWeek?`<span class="chip amber">${s.dueWeek} due this week</span>`:''}
+        ${s.blocked?`<span class="chip red">⛔ ${s.blocked} blocked</span>`:''}
+        <span class="chip blue">${s.inProgress} in progress</span>
+        ${nn?`<span class="chip violet">● ${nn} new</span>`:''}
+      </div></div></button>`;
+  });
+  h += notifNudge();
+  const recent=S.boot.activity.slice(0,6);
+  if(recent.length){
+    h += `<div class="sec">Latest changes</div><div class="card" style="overflow:hidden">${recent.map(a=>actRow(a,null,true)).join('')}</div>
+      <div style="height:10px"></div><button class="btn ghost" onclick="go('feed')">See all activity</button>`;
+  }
+  $('main').innerHTML = h+'</div>';
+}
+
+function notifNudge(){
+  const st=pushState();
+  if(st==='on' || st==='unsupported' || st==='denied' || store.get('nudgeOff',false)) return '';
+  return `<div class="card" style="padding:14px;margin-top:4px;display:flex;gap:12px;align-items:center">
+    <div style="font-size:26px">🔔</div><div style="flex:1"><b>Turn on notifications</b>
+    <div class="small muted">New tasks, updates and your Monday “due this week” list.</div></div>
+    <button class="chip blue" style="padding:8px 12px" onclick="go('me')">Set up</button></div>`;
+}
+
+/* ════════════════ MY WEEK (all projects) ════════════════ */
+async function renderMyWeek(){
+  shell('My week', `${short(week().from)} – ${short(week().to)}`, '', refreshBtn());
+  $('main').innerHTML='<div class="loading">Loading…</div>';
+  try{
+    const all=[];
+    for(const p of S.boot.projects.filter(p=>!p.error)){
+      const d = S.cache[p.id] || (S.cache[p.id]=await api('project',{projectId:p.id}));
+      const pm = norm(p.pm)===norm(S.name);
+      d.tasks.forEach(t=>{ if(isMine(t) || pm) all.push(Object.assign({_p:p, _pm:pm},t)); });
+    }
+    if(S.view!=='week') return;
+    $('main').innerHTML = '<div class="wide">'+weekLists(all,true)+'</div>';
+  }catch(e){ $('main').innerHTML=`<div class="empty"><b>Couldn't load</b>${esc(e.message)}</div>`; }
+}
+
+function weekLists(tasks, multi){
+  const t0=todayISO(), wk=week(); const open=tasks.filter(t=>t.status!=='Done');
+  const late=open.filter(t=>t.finish<t0).sort((a,b)=>a.finish.localeCompare(b.finish));
+  const due=open.filter(t=>t.finish>=t0 && t.finish<=wk.to).sort((a,b)=>a.finish.localeCompare(b.finish));
+  const starting=open.filter(t=>t.start>=wk.from && t.start<=wk.to && t.finish>wk.to).sort((a,b)=>a.start.localeCompare(b.start));
+  const doneWk=tasks.filter(t=>t.status==='Done' && t.finish>=wk.from && t.finish<=wk.to);
+  const card = list => `<div class="card group">${list.map(t=>taskRow(t,multi)).join('')}</div>`;
+  let h='';
+  if(late.length) h+=`<div class="sec red">Overdue <span class="n">${late.length}</span></div>`+card(late);
+  h+=`<div class="sec">To deliver this week <span class="n">${due.length}</span></div>`;
+  if(due.length){
+    const byDay={}; due.forEach(t=>(byDay[t.finish]=byDay[t.finish]||[]).push(t));
+    h+=Object.keys(byDay).sort().map(d=>`<div class="card group"><div class="ghead"><span>${d===t0?'Today':nice(d)}</span><span>${byDay[d].length}</span></div>${byDay[d].map(t=>taskRow(t,multi)).join('')}</div>`).join('');
+  } else h+=`<div class="card empty"><b>Nothing due this week 🎉</b></div>`;
+  if(starting.length) h+=`<div class="sec">Starting this week <span class="n">${starting.length}</span></div>`+card(starting);
+  if(doneWk.length) h+=`<div class="sec">Done this week <span class="n">${doneWk.length}</span></div>`+card(doneWk);
+  return h;
+}
+
+function taskRow(t, showProject){
+  const sd=t.subtasks.filter(x=>x.done).length;
+  const pid = t._p ? t._p.id : S.pid;
+  return `<button class="task ${t.status==='Done'?'done':''}" onclick="openTask('${pid}','${esc(t.id)}')">
+    <span class="sdot ${SCLS[t.status]||'ns'}"></span>
+    <div style="flex:1;min-width:0"><div class="t">${esc(t.name)}</div>
+    <div class="m">${dueChip(t)}<span class="chip">👤 ${esc(t.owner||'—')}</span>
+      ${t.status==='Blocked'?'<span class="chip red">⛔ Blocked</span>':''}
+      ${t.subtasks.length?`<span class="chip ${sd===t.subtasks.length?'green':''}">☑ ${sd}/${t.subtasks.length}</span>`:''}
+      ${t.updates.length?`<span class="chip">📝 ${t.updates.length}</span>`:''}
+      ${showProject&&t._p&&S.boot.projects.length>1?`<span class="chip blue">${esc(t._p.name)}</span>`:''}
+    </div></div></button>`;
+}
+
+/* ════════════════ PROJECT ════════════════ */
+async function openProject(pid, tab){
+  S.view='project'; S.pid=pid; S.tab=tab||'week'; store.set('view','project'); store.set('pid',pid);
+  document.querySelectorAll('nav.bottom button').forEach(b=>b.classList.toggle('on',b.dataset.v==='home'));
+  const meta=S.boot.projects.find(p=>p.id===pid);
+  if(!meta){ return go('home'); }
+  S.mine = norm(meta.pm)!==norm(S.name);
+  shell(meta.name,'Loading…',`<button class="hbtn" onclick="go('home')" aria-label="Back">${I.back}</button>`, refreshBtn());
+  if(S.cache[pid]){ S.proj=S.cache[pid]; renderProject(); return; }
+  $('main').innerHTML='<div class="loading">Loading…</div>';
+  try{ S.proj=await api('project',{projectId:pid}); S.cache[pid]=S.proj; if(S.view==='project'&&S.pid===pid) renderProject(); }
+  catch(e){ $('main').innerHTML=`<div class="empty"><b>Couldn't load</b>${esc(e.message)}</div>`; }
+}
+
+function setTab(t){ S.tab=t; store.set('tab',t); $('main').scrollTop=0; renderProject(); }
+
+function renderProject(){
+  const P=S.proj, p=P.project;
+  const ext = p.desktopUrl?`<a class="hbtn" href="${esc(p.desktopUrl)}" target="_blank" rel="noopener" aria-label="Open full plan" style="color:#fff">${I.ext}</a>`:'';
+  shell(p.name, `PM ${p.pm} · ${P.stats.pct}% done`, `<button class="hbtn" onclick="go('home')" aria-label="Back">${I.back}</button>`, ext+refreshBtn());
+  const nn=newCount(P.activity,p.id);
+  const tabs=[['week','This week'],['progress','Progress'],['activity','Activity'+(nn&&S.tab!=='activity'?`<span class="cnt">${nn}</span>`:'')],['tasks','All tasks']];
+  $('tabs').hidden=false;
+  $('tabs').innerHTML=tabs.map(([k,l])=>`<button class="${S.tab===k?'on':''}" onclick="setTab('${k}')">${l}</button>`).join('');
+  let h='<div class="wide">';
+  if(S.tab==='week'){
+    h+=`<div class="seg"><button class="${S.mine?'on':''}" onclick="S.mine=true;renderProject()">My tasks</button><button class="${!S.mine?'on':''}" onclick="S.mine=false;renderProject()">Everyone</button></div>`;
+    h+=weekLists(S.mine?P.tasks.filter(isMine):P.tasks,false);
+  }
+  else if(S.tab==='progress') h+=progressView(P);
+  else if(S.tab==='activity'){
+    h+= P.activity.length?`<div class="card" style="overflow:hidden">${P.activity.map(a=>actRow(a,p.id)).join('')}</div>`
+      :`<div class="card empty"><b>No changes yet</b>Changes show here within ~5 minutes.</div>`;
+    setTimeout(()=>{ markSeen(P.activity,p.id); markSeen(S.boot.activity,null); updateBadge(); },1500);
+  }
+  else h+=allTasksView(P);
+  $('main').innerHTML=h+'</div>';
+  $('fab').hidden=false;
+}
+
+function progressView(P){
+  const s=P.stats, t0=todayISO();
+  let h=`<div class="card" style="padding:18px;display:flex;gap:18px;align-items:center;margin-bottom:10px">${ring(s.pct,92,10)}
+    <div><div class="num" style="font-size:20px">${s.done} of ${s.total}</div><div class="muted small">tasks completed</div>
+    <div class="small" style="margin-top:6px">Started ${nice(P.project.start)}</div></div></div>
+    <div class="stats">
+      <div class="stat"><div class="num" style="color:var(--blue)">${s.inProgress}</div><div class="l">In progress</div></div>
+      <div class="stat"><div class="num" style="color:var(--amber)">${s.dueWeek}</div><div class="l">Due this week</div></div>
+      <div class="stat"><div class="num" style="color:var(--red)">${s.overdue}</div><div class="l">Overdue</div></div>
+    </div>`;
+  h+=`<div class="sec">By phase</div><div class="card" style="overflow:hidden">`;
+  P.phases.forEach(ph=>{
+    const ts=P.tasks.filter(t=>t.phase===ph.id); if(!ts.length) return;
+    const d=ts.filter(t=>t.status==='Done').length, ip=ts.filter(t=>t.status==='In progress').length;
+    const late=ts.filter(t=>t.status!=='Done'&&t.finish<t0).length, pct=Math.round(d/ts.length*100);
+    h+=`<button class="phase" style="width:100%;text-align:left" onclick="S.tab='tasks';S.q='';S.fStatus='';S.fPhase='${ph.id}';renderProject()">
+      <div class="top"><span>${esc(ph.name)}</span><span class="muted">${pct}%</span></div>
+      <div class="bar"><i style="width:${d/ts.length*100}%;background:var(--green)"></i><i style="width:${ip/ts.length*100}%;background:var(--blue)"></i></div>
+      <div class="small muted" style="margin-top:6px">${d}/${ts.length} done${ip?` · ${ip} in progress`:''}${late?` · <span style="color:var(--red)">${late} overdue</span>`:''}</div></button>`;
+  });
+  h+='</div>';
+  // per owner
+  const own={}; P.tasks.forEach(t=>owners(t.owner).forEach(o=>{ const k=o; own[k]=own[k]||{n:0,d:0,l:0};
+    own[k].n++; if(t.status==='Done') own[k].d++; else if(t.finish<t0) own[k].l++; }));
+  h+=`<div class="sec">By owner</div><div class="card" style="overflow:hidden">`+Object.keys(own).sort((a,b)=>own[b].n-own[a].n).map(o=>{
+    const x=own[o]; return `<div class="phase"><div class="top"><span>${esc(o)}</span><span class="muted">${x.d}/${x.n}</span></div>
+      <div class="bar"><i style="width:${x.d/x.n*100}%;background:var(--green)"></i></div>
+      ${x.l?`<div class="small" style="margin-top:6px;color:var(--red)">${x.l} overdue</div>`:''}</div>`; }).join('')+'</div>';
+  return h;
+}
+
+function allTasksView(P){
+  const q=norm(S.q), f=S.fStatus, fp=S.fPhase||'';
+  const list=P.tasks.filter(t=>(!f||t.status===f)&&(!fp||t.phase===fp)&&(!q||norm(t.name+' '+t.owner+' '+t.id).includes(q)));
+  let h=`<div class="search"><input class="field" placeholder="Search tasks or owners" value="${esc(S.q)}" oninput="S.q=this.value;clearTimeout(window._qt);window._qt=setTimeout(()=>{renderProject();const i=document.querySelector('.search input');i.focus();i.setSelectionRange(i.value.length,i.value.length)},250)"></div>
+    <div class="chips-scroll">${['','Not started','In progress','Blocked','Done'].map(s=>`<button class="${f===s?'on':''}" onclick="S.fStatus='${s}';renderProject()">${s||'All'}</button>`).join('')}</div>`;
+  if(fp){ const ph=P.phases.find(x=>x.id===fp); h+=`<div style="margin-bottom:10px"><button class="chip blue" onclick="S.fPhase='';renderProject()">${esc(ph?ph.name:fp)} ✕</button></div>`; }
+  if(!list.length) return h+`<div class="card empty"><b>No tasks match</b></div>`;
+  P.phases.concat([{id:'',name:'Other'}]).forEach(ph=>{
+    const ts=list.filter(t=>ph.id?t.phase===ph.id:!P.phases.some(x=>x.id===t.phase)); if(!ts.length) return;
+    h+=`<div class="card group"><div class="ghead"><span>${esc(ph.name)}</span><span>${ts.length}</span></div>${ts.map(t=>taskRow(t,false)).join('')}</div>`;
+  });
+  return h;
+}
+
+/* ── activity row ── */
+function actRow(a,pid,showProject){
+  const [ic,bg]=AIC[a.type]||['•','var(--chip)'];
+  const isNew = a.ts>store.get(seenKey(pid),'') && norm(a.actor)!==norm(S.name);
+  const can = a.type!=='deleted';
+  return `<button class="act ${isNew?'new':''}" ${can?`onclick="openTask('${a.projectId}','${esc(a.taskId)}')"`:''}>
+    <div class="aic" style="background:${bg}">${ic}</div>
+    <div style="flex:1;min-width:0"><div class="t">${esc(ALBL[a.type]||a.type)} · #${esc(a.taskId)} ${esc(a.task)}</div>
+    <div class="d">${esc(a.detail)}</div>
+    <div class="w">${ago(a.ts)}${a.actor?' · by '+esc(a.actor):''} · 👤 ${esc(a.owner||'—')}${showProject&&S.boot.projects.length>1?' · '+esc(a.project):''}</div></div></button>`;
+}
+
+/* ════════════════ ACTIVITY (all projects) ════════════════ */
+function renderFeed(){
+  shell('Activity','Changes across all projects','',refreshBtn());
+  const A=S.boot.activity;
+  $('main').innerHTML = '<div class="wide">'+(A.length?`<div class="card" style="overflow:hidden">${A.map(a=>actRow(a,null,true)).join('')}</div>`
+    :`<div class="card empty"><b>No changes yet</b>New tasks and updates will appear here.</div>`)+'</div>';
+  setTimeout(()=>{ markSeen(A,null); updateBadge(); },1500);
+}
+
+/* ════════════════ TASK SHEET ════════════════ */
+async function openTask(pid,id){
+  let P=S.cache[pid];
+  if(!P){ try{ P=S.cache[pid]=await api('project',{projectId:pid}); }catch(e){ return toast(e.message); } }
+  const t=P.tasks.find(x=>String(x.id)===String(id));
+  if(!t) return toast('That task no longer exists.');
+  S.sheet={pid,id}; S.form=null; renderSheet();
+  $('scrim').classList.add('on'); $('sheet').classList.add('on');
+}
+function closeSheet(){ $('scrim').classList.remove('on'); $('sheet').classList.remove('on'); S.sheet=null; S.form=null; }
+
+function renderSheet(){
+  if(!S.sheet) return;
+  const P=S.cache[S.sheet.pid], t=P.tasks.find(x=>String(x.id)===String(S.sheet.id));
+  if(!t){ closeSheet(); return; }
+  const ph=P.phases.find(p=>p.id===t.phase);
+  const ups=t.updates.slice().reverse();
+  $('sheetBody').innerHTML = `
+    <div class="small muted">#${esc(t.id)} · ${esc(ph?ph.name:'')} · ${esc(P.project.name)}</div>
+    <div style="display:flex;gap:10px;align-items:flex-start"><h2 style="flex:1">${esc(t.name)}</h2>
+      <button class="chip blue" style="padding:8px 12px;margin-top:6px" onclick="openForm('${S.sheet.pid}','${esc(t.id)}')">✏️ Edit</button></div>
+    <div class="card"><dl class="kv">
+      <dt>Owner</dt><dd>${esc(t.owner||'—')}</dd>
+      <dt>Dates</dt><dd>${nice(t.start)} → <b>${nice(t.finish)}</b></dd>
+      <dt>Due</dt><dd>${dueChip(t)}</dd>
+      ${t.pri?`<dt>Priority</dt><dd>${esc(t.pri)}</dd>`:''}
+      ${t.dep?`<dt>Waits on</dt><dd class="dep">${esc(t.dep)}</dd>`:''}
+    </dl></div>
+    <div class="sec">Status</div>
+    <div class="status4">${['Not started','In progress','Blocked','Done'].map(s=>`<button class="${SCLS[s]} ${t.status===s?'on':''}" onclick="setStatus('${s}')"><span class="sdot ${SCLS[s]}" style="margin:0"></span>${s}</button>`).join('')}</div>
+    <div class="sec">Sub-tasks <span class="n">${t.subtasks.filter(x=>x.done).length}/${t.subtasks.length}</span></div>
+    <div class="card" style="overflow:hidden">${t.subtasks.map((s,i)=>`<button class="sub ${s.done?'on':''}" onclick="toggleSub(${i})"><span class="cb">${s.done?I.check:''}</span><span>${esc(s.text)}</span></button>`).join('')}
+      <div class="addrow" style="${t.subtasks.length?'border-top:1px solid var(--line)':''}"><input class="field" id="subText" placeholder="Add a sub-task" onkeydown="if(event.key==='Enter')addSub()"><button class="btn" style="width:auto;padding:10px 16px" onclick="addSub()">Add</button></div></div>
+    <div class="sec">Progress updates <span class="n">${t.updates.length}</span></div>
+    <div class="card" style="padding:12px">
+      <textarea class="field" id="updText" rows="2" placeholder="What's the latest? e.g. Quote received, waiting for approval" style="resize:vertical;font-size:15px"></textarea>
+      <div style="height:8px"></div><button class="btn" id="updBtn" onclick="addUpdate()">Post update</button></div>
+    ${ups.length?`<div class="card" style="overflow:hidden;margin-top:10px">${ups.map(u=>`<div class="upd"><div class="w">${esc(u.ts?nice(String(u.ts).slice(0,10)):'')}${u.by?' · '+esc(u.by):''}</div>${esc(u.text)}</div>`).join('')}</div>`:''}
+    ${t.notes?`<div class="sec">Notes</div><div class="card notes">${esc(t.notes)}</div>`:''}
+    <div style="height:14px"></div><button class="btn ghost" onclick="closeSheet()">Close</button>`;
+}
+
+async function write(action, params, optimistic){
+  if(S.busy) return; S.busy=true;
+  const {pid,id}=S.sheet; const P=S.cache[pid]; const t=P.tasks.find(x=>String(x.id)===String(id));
+  const backup=JSON.stringify(t);
+  optimistic(t); renderSheet();
+  try{
+    const res=await api(action,Object.assign({projectId:pid,taskId:id},params),true);
+    afterWrite(pid,res); renderSheet();
+    toast('Saved ✓');
+  }catch(e){
+    Object.assign(t,JSON.parse(backup)); renderSheet(); toast('Not saved: '+e.message);
+  }finally{ S.busy=false; }
+}
+function setStatus(s){ write('setStatus',{status:s},t=>t.status=s); }
+function toggleSub(i){ write('toggleSub',{index:i,done:!S.cache[S.sheet.pid].tasks.find(x=>String(x.id)===String(S.sheet.id)).subtasks[i].done},t=>t.subtasks[i].done=!t.subtasks[i].done); }
+function addSub(){
+  const v=$('subText').value.trim(); if(!v) return toast('Write the sub-task first');
+  write('addSub',{text:v},t=>t.subtasks.push({text:v,done:false}));
+}
+function addUpdate(){
+  const v=$('updText').value.trim(); if(!v) return toast('Write something first');
+  write('addUpdate',{text:v},t=>t.updates.push({ts:todayISO(),text:v,by:S.name}));
+}
+
+/* ════════════════ ADD / EDIT TASK ════════════════ */
+async function openForm(pid,id){
+  let P=S.cache[pid];
+  if(!P){ try{ P=S.cache[pid]=await api('project',{projectId:pid}); }catch(e){ return toast(e.message); } }
+  const t = id ? P.tasks.find(x=>String(x.id)===String(id)) : null;
+  if(id && !t) return toast('That task no longer exists.');
+  const t0=todayISO();
+  const draft = t ? JSON.parse(JSON.stringify(t)) : {id:'',name:'',phase:S.fPhase||(P.phases[0]||{}).id||'',owner:S.name,pri:'Medium',
+    status:'Not started',start:t0,finish:addD(t0,6),dep:'',notes:'',subtasks:[],updates:[]};
+  S.form={pid,draft};
+  S.sheet={pid,id:id||null};
+  renderForm();
+  $('scrim').classList.add('on'); $('sheet').classList.add('on');
+  $('sheetBody').scrollTop=0;
+}
+
+function renderForm(){
+  const {pid,draft:d}=S.form, P=S.cache[pid];
+  const ownersList=[...new Set(S.boot.people.concat(P.tasks.flatMap(t=>owners(t.owner))))].sort((a,b)=>a.localeCompare(b));
+  const deps=P.tasks.filter(t=>String(t.id)!==String(d.id)).sort((a,b)=>a.id-b.id);
+  const depKnown=!d.dep || deps.some(t=>'Task '+t.id===d.dep);
+  const isPm=norm(S.name)===norm(P.project.pm);
+  $('sheetBody').innerHTML=`
+    <div class="small muted">${d.id?'#'+esc(d.id)+' · ':''}${esc(P.project.name)}</div>
+    <h2>${d.id?'Edit task':'New task'}</h2>
+    <label class="lbl">Task name *</label>
+    <textarea class="field" id="fName" rows="2" placeholder="What needs to be done?">${esc(d.name)}</textarea>
+    <label class="lbl">Phase</label>
+    <select class="field" id="fPhase">${P.phases.map(ph=>`<option value="${esc(ph.id)}" ${ph.id===d.phase?'selected':''}>${esc(ph.name)}</option>`).join('')}</select>
+    <label class="lbl">Owner</label>
+    <input class="field" id="fOwner" list="ownerList" value="${esc(d.owner)}" placeholder="Who is responsible?">
+    <datalist id="ownerList">${ownersList.map(o=>`<option value="${esc(o)}">`).join('')}</datalist>
+    <div class="two">
+      <div><label class="lbl">Start</label><input class="field" type="date" id="fStart" value="${d.start}"></div>
+      <div><label class="lbl">Due *</label><input class="field" type="date" id="fFinish" value="${d.finish}"></div>
+    </div>
+    <label class="lbl">Priority</label>
+    <div class="seg" id="fPri">${['High','Medium','Low'].map(x=>`<button type="button" class="${d.pri===x?'on':''}" onclick="S.form.draft.pri='${x}';[...this.parentNode.children].forEach(b=>b.classList.toggle('on',b===this))">${x}</button>`).join('')}</div>
+    ${d.id?`<label class="lbl">Status</label><select class="field" id="fStatus">${['Not started','In progress','Blocked','Done'].map(x=>`<option ${d.status===x?'selected':''}>${x}</option>`).join('')}</select>`:''}
+    <label class="lbl">Waits on</label>
+    <select class="field" id="fDep"><option value="">— nothing —</option>
+      ${depKnown?'':`<option selected value="${esc(d.dep)}">${esc(d.dep)}</option>`}
+      ${deps.map(t=>`<option value="Task ${esc(t.id)}" ${'Task '+t.id===d.dep?'selected':''}>#${esc(t.id)} ${esc(t.name.length>45?t.name.slice(0,45)+'…':t.name)}</option>`).join('')}</select>
+    <label class="lbl">Sub-tasks</label>
+    <div class="card" style="overflow:hidden" id="fSubs"></div>
+    <label class="lbl">Notes</label>
+    <textarea class="field" id="fNotes" rows="3" placeholder="Details, contacts, links…">${esc(d.notes)}</textarea>
+    <div style="height:18px"></div>
+    <button class="btn" id="fSave" onclick="saveForm()">${d.id?'Save changes':'Add task'}</button>
+    <div style="height:8px"></div>
+    <button class="btn ghost" onclick="${d.id?`openTask('${pid}','${esc(d.id)}')`:'closeSheet()'}">Cancel</button>
+    ${d.id&&isPm?`<div style="height:22px"></div><button class="btn ghost" style="color:var(--red)" onclick="askDelete()">🗑️ Delete task</button>`:''}`;
+  renderFormSubs();
+}
+
+function renderFormSubs(){
+  const subs=S.form.draft.subtasks;
+  $('fSubs').innerHTML = subs.map((s,i)=>`<div class="addrow" style="${i?'border-top:1px solid var(--line)':''}">
+      <button type="button" class="cb" style="${s.done?'background:var(--green);border-color:var(--green)':''}" onclick="S.form.draft.subtasks[${i}].done=!S.form.draft.subtasks[${i}].done;renderFormSubs()">${s.done?I.check:''}</button>
+      <input class="field plain" value="${esc(s.text)}" oninput="S.form.draft.subtasks[${i}].text=this.value">
+      <button type="button" class="xbtn" aria-label="Remove" onclick="S.form.draft.subtasks.splice(${i},1);renderFormSubs()">✕</button></div>`).join('') +
+    `<div class="addrow" style="${subs.length?'border-top:1px solid var(--line)':''}"><input class="field" id="fSubNew" placeholder="Add a sub-task" onkeydown="if(event.key==='Enter'){event.preventDefault();formAddSub()}">
+      <button type="button" class="btn" style="width:auto;padding:10px 16px" onclick="formAddSub()">Add</button></div>`;
+}
+function formAddSub(){
+  const v=$('fSubNew').value.trim(); if(!v) return;
+  S.form.draft.subtasks.push({text:v,done:false}); renderFormSubs(); $('fSubNew').focus();
+}
+
+async function saveForm(){
+  if(S.busy) return;
+  const d=S.form.draft, pid=S.form.pid;
+  const pending=$('fSubNew').value.trim(); if(pending){ d.subtasks.push({text:pending,done:false}); $('fSubNew').value=''; }
+  const task={id:d.id, name:$('fName').value.trim(), phase:$('fPhase').value, owner:$('fOwner').value.trim(),
+    start:$('fStart').value, finish:$('fFinish').value, pri:d.pri, dep:$('fDep').value, notes:$('fNotes').value.trim(),
+    subtasks:d.subtasks.filter(s=>String(s.text).trim())};
+  if($('fStatus')) task.status=$('fStatus').value;
+  if(!task.name) return toast('Give the task a name');
+  if(!task.finish) return toast('Pick a due date');
+  if(!task.start) task.start=task.finish;
+  if(task.finish<task.start) return toast('Due date is before the start date');
+  S.busy=true; const b=$('fSave'); b.disabled=true; b.textContent='Saving…';
+  try{
+    const res=await api('saveTask',{projectId:pid,task},true);
+    afterWrite(pid,res);
+    toast(d.id?'Task saved ✓':'Task added ✓');
+    S.busy=false; openTask(pid,res.savedId);
+  }catch(e){ toast('Not saved: '+e.message); b.disabled=false; b.textContent=d.id?'Save changes':'Add task'; }
+  finally{ S.busy=false; }
+}
+
+function askDelete(){
+  const d=S.form.draft;
+  $('sheetBody').innerHTML=`<div style="text-align:center;padding:18px 4px 4px">
+    <div style="font-size:40px">🗑️</div><h2>Delete this task?</h2>
+    <p class="muted" style="margin:0 0 20px">#${esc(d.id)} ${esc(d.name)}<br>This removes it from the project plan for everyone.</p>
+    <button class="btn" style="background:var(--red)" id="delBtn" onclick="doDelete()">Yes, delete</button>
+    <div style="height:8px"></div><button class="btn ghost" onclick="renderForm()">Keep it</button></div>`;
+}
+async function doDelete(){
+  if(S.busy) return; S.busy=true;
+  const b=$('delBtn'); b.disabled=true; b.textContent='Deleting…';
+  try{
+    const res=await api('deleteTask',{projectId:S.form.pid,taskId:S.form.draft.id},true);
+    afterWrite(S.form.pid,res); closeSheet(); toast('Task deleted');
+  }catch(e){ toast(e.message); b.disabled=false; b.textContent='Yes, delete'; }
+  finally{ S.busy=false; }
+}
+
+function afterWrite(pid,res){
+  S.cache[pid]=res; if(S.pid===pid) S.proj=res;
+  const bp=S.boot.projects.find(p=>p.id===pid); if(bp) bp.stats=res.stats;
+  if(S.boot.data){ S.boot.data[pid]=res; store.set('saved',{pin:S.pin,boot:S.boot}); }
+  if(S.view==='project') renderProject(); else if(S.view==='week') renderMyWeek();
+}
+
+/* ════════════════ ME ════════════════ */
+function renderMe(){
+  shell('Me','Settings & notifications');
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  const standalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+  $('main').innerHTML = `<div class="wide">
+    <div class="sec">You</div>
+    <div class="card"><div class="row"><div><b>${esc(S.name)}</b><div class="small muted">Shown on your changes</div></div>
+      <button class="chip blue" style="padding:8px 12px" onclick="store.set('name','');S.name='';renderWho()">Change</button></div></div>
+    <div class="sec">Notifications</div>
+    <div class="card" style="padding:14px" id="pushBox">${pushBoxHtml()}</div>
+    ${standalone?'':`<div class="sec">Install on your phone</div>
+    <div class="card" style="padding:14px;font-size:14px">${ios
+      ?'In <b>Safari</b> tap the <b>Share</b> button (square with arrow) → <b>Add to Home Screen</b>.'
+      :'In <b>Chrome</b> tap the <b>⋮</b> menu → <b>Install app</b> (or <b>Add to Home screen</b>).'}</div>`}
+    <div class="sec">Team code</div>
+    <div class="card"><div class="row"><div class="small muted">Signed in with the team code on this phone.</div>
+      <button class="chip red" style="padding:8px 12px" onclick="store.set('pin','');S.pin='';renderPin()">Sign out</button></div></div>
+  </div>`;
+}
+
+/* ════════════════ PHONE NOTIFICATIONS ════════════════ */
+const HOSTED = location.protocol==='https:' && !/googleusercontent|google\.com/.test(location.hostname);
+const IOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const STANDALONE = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone===true;
+const APP_HOME = 'https://tigertrade-hub.github.io/follow-up/';
+
+function pushState(){
+  if(!HOSTED) return 'elsewhere';
+  if(IOS && !STANDALONE) return 'install';
+  if(!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return 'unsupported';
+  if(Notification.permission==='denied') return 'denied';
+  return store.get('pushOn',false) && Notification.permission==='granted' ? 'on' : 'off';
+}
+
+function pushBoxHtml(){
+  const st=pushState();
+  const what=`<div class="small muted" style="margin:4px 0 12px">• a task is added for you<br>• your task is updated or changes status<br>• every Monday: what you need to deliver this week</div>`;
+  if(st==='elsewhere') return `<b>Notifications work in the installed app</b><div class="small muted" style="margin:6px 0 12px">Open the Tiger Trade app link on your phone and add it to your home screen.</div>
+    <a class="btn" href="${APP_HOME}" target="_blank" rel="noopener">Open the app</a>`;
+  if(st==='install') return `<b>First add the app to your Home Screen</b><div class="small muted" style="margin-top:6px">In Safari tap <b>Share</b> → <b>Add to Home Screen</b>. Then open <b>TT Follow-up</b> from the new icon and come back here to turn on notifications.</div>`;
+  if(st==='unsupported') return `<b>This phone can't show notifications</b><div class="small muted" style="margin-top:6px">On iPhone you need iOS 16.4 or newer. On Android, use Chrome.</div>`;
+  if(st==='denied') return `<b>Notifications are blocked</b><div class="small muted" style="margin-top:6px">${IOS?'Open the phone <b>Settings → Notifications → TT Follow-up</b> and allow notifications.':'In Chrome: ⋮ → <b>Settings → Site settings → Notifications</b> and allow this app.'} Then come back here.</div>`;
+  if(st==='on') return `<div style="display:flex;gap:10px;align-items:center"><span style="font-size:24px">✅</span><div><b>Notifications are on</b><div class="small muted">You get alerts for your tasks and a Monday list of what's due.</div></div></div>
+    <div style="height:12px"></div><button class="btn ghost" id="pushTest" onclick="testPush()">Send me a test</button>
+    <div style="height:8px"></div><button class="btn ghost" style="color:var(--red)" onclick="disablePush()">Turn off on this phone</button>`;
+  return `<b>Get notified when:</b>${what}<button class="btn" id="pushOn" onclick="enablePush()">🔔 Turn on notifications</button>`;
+}
+
+function deviceId(){
+  let d=store.get('deviceId','');
+  if(!d){ d='d'+Date.now().toString(36)+Math.random().toString(36).slice(2,10); store.set('deviceId',d); }
+  return d;
+}
+function b64ToU8(b){ b=b.replace(/-/g,'+').replace(/_/g,'/'); while(b.length%4) b+='='; return Uint8Array.from(atob(b),c=>c.charCodeAt(0)); }
+
+/* The service worker can't read localStorage, so it gets what it needs through the Cache API. */
+async function saveSwConfig(){
+  if(!HOSTED || !('caches' in window)) return;
+  try{ const c=await caches.open('pmf-config');
+    await c.put('config',new Response(JSON.stringify({api:API_URL,pin:S.pin,name:S.name,deviceId:deviceId()}))); }catch(e){}
+}
+
+async function subscribeNow(){
+  const reg=await navigator.serviceWorker.ready;
+  let sub=await reg.pushManager.getSubscription();
+  if(!sub) sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToU8(S.boot.vapidKey)});
+  await saveSwConfig();
+  await api('subscribe',{deviceId:deviceId(),subscription:sub.toJSON(),platform:(IOS?'iPhone ':'')+navigator.userAgent.slice(0,50)},true);
+  store.set('pushOn',true); store.set('pushName',S.name);
+}
+
+async function enablePush(){
+  const b=$('pushOn'); if(b){ b.disabled=true; b.textContent='Turning on…'; }
+  try{
+    const perm=await Notification.requestPermission();
+    if(perm!=='granted'){ toast('Notifications were not allowed'); $('pushBox').innerHTML=pushBoxHtml(); return; }
+    await subscribeNow();
+    $('pushBox').innerHTML=pushBoxHtml();
+    toast('Notifications on ✓ — sending a test…');
+    api('testPush').catch(()=>{});
+  }catch(e){ toast('Could not turn on: '+e.message); $('pushBox').innerHTML=pushBoxHtml(); }
+}
+
+async function disablePush(){
+  try{
+    const reg=await navigator.serviceWorker.ready; const sub=await reg.pushManager.getSubscription();
+    if(sub) await sub.unsubscribe();
+    await api('unsubscribe',{deviceId:deviceId()},true);
+  }catch(e){}
+  store.set('pushOn',false); $('pushBox').innerHTML=pushBoxHtml(); toast('Notifications off on this phone');
+}
+
+async function testPush(){
+  const b=$('pushTest'); b.disabled=true; b.textContent='Sending…';
+  try{ const r=await api('testPush'); toast(r.sent?'Sent — it should arrive in a few seconds':'No phone registered — turn notifications off and on again'); }
+  catch(e){ toast(e.message); }
+  finally{ b.disabled=false; b.textContent='Send me a test'; }
+}
+
+/* keep the phone's registration in sync (name / team code changes) */
+async function syncPush(){
+  if(pushState()!=='on') return;
+  await saveSwConfig();
+  if(store.get('pushName','')!==S.name){ try{ await subscribeNow(); }catch(e){} }
+}
+
+/* open a task from a tapped notification: #task=<projectId>/<taskId> */
+function openFromHash(){
+  const m=location.hash.match(/^#task=([^/]+)\/(.+)$/);
+  if(!m) return false;
+  history.replaceState(null,'',location.pathname+location.search);
+  const pid=decodeURIComponent(m[1]), id=decodeURIComponent(m[2]);
+  openProject(pid,'week').then(()=>openTask(pid,id));
+  return true;
+}
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.addEventListener('message',e=>{
+    if(e.data && e.data.type==='open' && S.boot){ location.hash=e.data.hash; openFromHash(); }
+    else if(e.data && e.data.type==='open-feed' && S.boot) go('feed');
+  });
+}
+
+/* ── toast ── */
+let _tt; function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('on'),2600); }
+
+/* refresh when the app comes back to the foreground */
+let _hid=0;
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden) _hid=Date.now();
+  else if(S.boot && Date.now()-_hid>60000) refresh(true);
+});
+
+/* ════════════════ DEMO DATA (only when API_URL is empty) ════════════════ */
+function demoApi(action,p){
+  const t0=todayISO(), wk=week();
+  if(!window._demo){
+    const start=addD(wk.from,-35);
+    const mk=(id,phase,name,owner,status,off,dur,subs,ups,pri)=>({id:String(id),phase,name,owner,pri:pri||'High',status,start:addD(start,off),finish:addD(start,off+dur-1),dep:'',notes:'',
+      subtasks:(subs||[]).map(([text,done])=>({text,done})),updates:(ups||[]).map(text=>({ts:addD(t0,-2),text}))});
+    const tasks=[
+      mk(1,'p1','Check if Dubai company can legally operate in Slovakia','Mike','Done',0,14),
+      mk(2,'p1','Register new showroom company','Us','In progress',0,40,[['Notary appointment',true],['Submit to registry',false]],['Documents with notary']),
+      mk(3,'p1','How Rita\'s family can place products on Slovak market','Sofi','In progress',7,30,[],['Called ÚVZ, waiting for reply']),
+      mk(26,'p2','Obtain trade license (živnostenský list)','Us','Not started',30,8),
+      mk(28,'p2','Obtain food handling permit (RÚVZ)','Sofi','Blocked',33,6,[],['Waiting for trade license']),
+      mk(32,'p2','BOZP (health & safety) sign-off','Sofi','Not started',36,4,[['Book assessor',false],['Roasting machine review',false]]),
+      mk(8,'p3','Prepare 3/9/12/24-month financial plan','Mike','Blocked',20,14,[],[],'High'),
+      mk(13,'p7','Full product list with suppliers, sources, prices','Ameer','In progress',0,38,[['Dry goods',true],['Wine',false],['Snacks',false]]),
+      mk(9,'p5','Negotiate rent-free period — min. 5.5 months','Us','Done',0,21,[],['Agreed 6 months']),
+      mk(41,'p5','Measure and draw floor plan','Us','Not started',38,3),
+      mk(49,'p7','Approve all product labeling (Slovak language law)','Sofi','Not started',39,14),
+      mk(35,'p4','Open bank account for new company','Mike','In progress',34,4)];
+    const phases=[{id:'p1',name:'Legal & Structure',order:1},{id:'p2',name:'Licensing & Permits',order:2},{id:'p3',name:'Finance & Planning',order:3},
+      {id:'p4',name:'Banking & Admin',order:4},{id:'p5',name:'Premises & Layout',order:5},{id:'p7',name:'Products & Suppliers',order:7}];
+    const now=new Date(); const ts=m=>new Date(now-m*60000-now.getTimezoneOffset()*60000).toISOString().slice(0,19);
+    const activity=[
+      {ts:ts(12),projectId:'showroom',project:'Showroom & Supermarket',taskId:'3',task:tasks[2].name,type:'update',detail:'📝 Called ÚVZ, waiting for reply',owner:'Sofi',actor:'Sofi'},
+      {ts:ts(95),projectId:'showroom',project:'Showroom & Supermarket',taskId:'28',task:tasks[4].name,type:'status',detail:'Not started → Blocked',owner:'Sofi',actor:'Mike'},
+      {ts:ts(300),projectId:'showroom',project:'Showroom & Supermarket',taskId:'35',task:tasks[11].name,type:'new',detail:'Owner: Mike · Due '+nice(tasks[11].finish),owner:'Mike',actor:''},
+      {ts:ts(1600),projectId:'showroom',project:'Showroom & Supermarket',taskId:'9',task:tasks[8].name,type:'done',detail:'In progress → Done',owner:'Us',actor:'Sofi'}];
+    window._demo={tasks,phases,activity,start};
+  }
+  const D=window._demo;
+  const stats=()=>{const s={total:D.tasks.length,done:0,inProgress:0,blocked:0,overdue:0,dueWeek:0};
+    D.tasks.forEach(t=>{ if(t.status==='Done'){s.done++;return;} if(t.status==='In progress')s.inProgress++; if(t.status==='Blocked')s.blocked++;
+      if(t.finish<t0)s.overdue++; else if(t.finish<=wk.to)s.dueWeek++; }); s.pct=Math.round(s.done/s.total*100); return s;};
+  const proj=()=>({ok:true,project:{id:'showroom',name:'Showroom & Supermarket',pm:'Sofi',desktopUrl:'',start:D.start},phases:D.phases,
+    tasks:JSON.parse(JSON.stringify(D.tasks)),stats:stats(),activity:D.activity,today:t0});
+  const find=()=>D.tasks.find(t=>t.id===String(p.taskId));
+  return new Promise(r=>setTimeout(()=>{
+    if(action==='bootstrap') r({ok:true,data:{showroom:proj()},projects:[{id:'showroom',name:'Showroom & Supermarket',pm:'Sofi',stats:stats()}],
+      people:['Sofi','Mike','Ameer','Us','External'],vapidKey:'',activity:D.activity});
+    else if(action==='project') r(proj());
+    else if(action==='setStatus'){ find().status=p.status; r(proj()); }
+    else if(action==='toggleSub'){ find().subtasks[p.index].done=p.done; r(proj()); }
+    else if(action==='addSub'){ find().subtasks.push({text:p.text,done:false}); r(proj()); }
+    else if(action==='saveTask'){ const t=p.task; let x=t.id?find():null;
+      if(!x){ x={id:String(Math.max(...D.tasks.map(y=>+y.id))+1),status:'Not started',updates:[]}; D.tasks.push(x); p.taskId=x.id; }
+      Object.assign(x,t,{id:x.id}); const o=proj(); o.savedId=x.id; r(o); }
+    else if(action==='deleteTask'){ D.tasks=D.tasks.filter(t=>t.id!==String(p.taskId)); r(proj()); }
+    else if(action==='addUpdate'){ find().updates.push({ts:t0,text:p.text,by:S.name}); r(proj()); }
+    else r({ok:true});
+  },250));
+}
+
+const ICON_DATA='data:image/png;base64,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';
+
+boot();
+/* offline shell + installability — only on the hosted copy, not inside Apps Script */
+if('serviceWorker' in navigator && location.protocol==='https:' && !/googleusercontent|google\.com/.test(location.hostname)){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
