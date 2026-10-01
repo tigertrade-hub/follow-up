@@ -51,7 +51,7 @@ header .sub{font-size:12px;opacity:.7;font-weight:500}
 main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 16px 84px}
 nav.bottom{display:flex;background:var(--card);border-top:1px solid var(--line);
   padding:6px 8px calc(env(safe-area-inset-bottom) + 6px);flex-shrink:0}
-nav.bottom button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;
+nav.bottom button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10.5px;white-space:nowrap;
   color:var(--ink-3);font-weight:600;padding:6px 0;position:relative}
 nav.bottom button svg{width:23px;height:23px}
 nav.bottom button.on{color:var(--blue)}
@@ -183,6 +183,14 @@ input[type=date].field{min-width:0;width:100%;padding:12px 10px}
 .field.plain:focus{border-color:var(--blue);background:var(--card)}
 .xbtn{width:34px;height:34px;border-radius:10px;color:var(--ink-3);font-size:15px;flex-shrink:0}
 select.field{appearance:auto}
+.help{margin-bottom:10px;overflow:hidden}
+.help summary{list-style:none;display:flex;align-items:center;gap:12px;padding:14px;cursor:pointer;font-size:15.5px}
+.help summary::-webkit-details-marker{display:none}
+.help .hic{width:36px;height:36px;border-radius:11px;background:var(--chip);display:grid;place-items:center;font-size:18px;flex-shrink:0}
+.help b{flex:1}
+.help .chev{color:var(--ink-3);font-size:22px;transition:transform .2s}
+.help[open] .chev{transform:rotate(90deg)}
+.help .hb{padding:0 16px 16px 62px;font-size:14.5px;line-height:1.6;color:var(--ink-2)}
 .toast{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom) + 84px);z-index:40;
   background:var(--ink);color:var(--bg);padding:12px 16px;border-radius:12px;font-weight:600;font-size:14px;
   transform:translateY(20px);opacity:0;transition:.2s;pointer-events:none;max-width:480px;margin:0 auto}
@@ -201,6 +209,7 @@ select.field{appearance:auto}
     <button data-v="home" onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Projects</button>
     <button data-v="week" onclick="go('week')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M16 2.5v4M8 2.5v4M3 10h18"/><path d="m9 15 2 2 4-4"/></svg>My week</button>
     <button data-v="feed" onclick="go('feed')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Activity<span class="dot-badge" id="feedBadge" hidden></span></button>
+    <button data-v="help" onclick="go('help')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5A1.5 1.5 0 0 1 3.5 4H9a3 3 0 0 1 3 3v13a2.5 2.5 0 0 0-2.5-2.5h-6A1.5 1.5 0 0 1 2 16z"/><path d="M22 5.5A1.5 1.5 0 0 0 20.5 4H15a3 3 0 0 0-3 3v13a2.5 2.5 0 0 1 2.5-2.5h6a1.5 1.5 0 0 0 1.5-1.5z"/></svg>How to use</button>
     <button data-v="me" onclick="go('me')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Me</button>
   </nav>
 </div>
@@ -372,7 +381,7 @@ function go(v){
   document.querySelectorAll('nav.bottom button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
   $('tabs').hidden=true;
   $('main').scrollTop=0;
-  ({home:renderHome, week:renderMyWeek, feed:renderFeed, me:renderMe})[v]();
+  ({home:renderHome, week:renderMyWeek, feed:renderFeed, me:renderMe, help:renderHelp})[v]();
   updateBadge();
 }
 
@@ -397,7 +406,7 @@ function redraw(){
   if(!$('nav') || $('nav').hidden) return;
   const st=$('main').scrollTop;
   if(S.view==='project'){ if(S.cache[S.pid]){ S.proj=S.cache[S.pid]; renderProject(); } }
-  else ({home:renderHome, week:renderMyWeek, feed:renderFeed, me:()=>{}})[S.view]();
+  else ({home:renderHome, week:renderMyWeek, feed:renderFeed, me:()=>{}, help:()=>{}})[S.view]();
   $('main').scrollTop=st;
   if(S.sheet && !S.form) renderSheet();
   updateBadge();
@@ -430,6 +439,9 @@ function renderHome(){
         ${nn?`<span class="chip violet">● ${nn} new</span>`:''}
       </div></div></button>`;
   });
+  if(!store.get('helpSeen',false)) h += `<button class="card" style="padding:14px;margin-bottom:12px;display:flex;gap:12px;align-items:center;width:100%;text-align:left" onclick="go('help')">
+    <div style="font-size:26px">📖</div><div style="flex:1"><b>New here? Read the 1-minute guide</b>
+    <div class="small muted">How to see your week, update a task and get alerts.</div></div><span class="chip blue" style="padding:8px 12px">Open</span></button>`;
   h += notifNudge();
   const recent=S.boot.activity.slice(0,6);
   if(recent.length){
@@ -791,6 +803,7 @@ function renderMe(){
   const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
   const standalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone;
   $('main').innerHTML = `<div class="wide">
+    <button class="btn ghost" style="margin-top:4px" onclick="go('help')">📖 How to use the app</button>
     <div class="sec">You</div>
     <div class="card"><div class="row"><div><b>${esc(S.name)}</b><div class="small muted">Shown on your changes</div></div>
       <button class="chip blue" style="padding:8px 12px" onclick="store.set('name','');S.name='';renderWho()">Change</button></div></div>
@@ -808,6 +821,29 @@ function renderMe(){
     <div class="card"><div class="row"><div class="small muted">Signed in with the team code on this phone.</div>
       <button class="chip red" style="padding:8px 12px" onclick="store.set('pin','');S.pin='';renderPin()">Sign out</button></div></div>
   </div>`;
+}
+
+/* ════════════════ HOW TO USE (in-app guide) ════════════════ */
+const HELP = [
+  ['🏠', 'Projects', `The home screen lists every project with how far it is (%), what is overdue, due this week or blocked. Tap a project to open it.`],
+  ['📅', 'My week', `Your personal list across all projects: <b>overdue</b>, <b>to deliver this week</b> (by day), starting this week and done this week. Start every Monday here.`],
+  ['🗂️', 'Inside a project', `Four tabs:<br>• <b>This week</b> — switch between <i>My tasks</i> and <i>Everyone</i><br>• <b>Progress</b> — % done by phase and by person<br>• <b>Activity</b> — every change, newest first<br>• <b>All tasks</b> — search and filter by status`],
+  ['✅', 'Update your task', `Tap any task, then:<br>• tap a <b>status</b>: Not started · In progress · Blocked · Done<br>• tick <b>sub-tasks</b> as you finish them, or add new ones<br>• write a short <b>progress update</b> (e.g. “Quote received, waiting for approval”) and tap <b>Post update</b><br>Everything saves straight into the project plan.`],
+  ['➕', 'Add or edit a task', `Inside a project tap <b>＋ New task</b> (bottom right). Fill in name, phase, owner, start and due date, priority, sub-tasks and notes.<br>To change a task, open it and tap <b>✏️ Edit</b>. Only the project manager can delete tasks.`],
+  ['🔔', 'Notifications', `Turn them on once: <b>Me → Turn on notifications → Allow</b>.<br>• <b>📌 New task for you</b> — straight away<br>• other changes to your tasks — collected and sent at 9, 11, 13, 15 and 17<br>• <b>reminders</b> at 9:00 — a check-in after you start, a heads-up before the deadline (e.g. 2 days for a 1-week task) and on the due day<br>• every <b>Monday</b>: your list for the week`],
+  ['📆', 'Calendar', `When you get a task, a calendar invite arrives by email and the deadline is <b>blocked</b> in your calendar automatically (ask the PM to add your email).<br>You can also add all your tasks under <b>Me → Add my tasks to my calendar</b>.`],
+  ['📲', 'Install on your phone', `<b>Android:</b> open the link in Chrome → <b>⋮ → Install app</b>.<br><b>iPhone:</b> open the link in Safari → <b>Share → Add to Home Screen</b>.<br>Always open the app from the <b>TT Follow-up</b> icon.`],
+  ['💡', 'Tips', `• Pull fresh data any time with the <b>↻</b> button (top right).<br>• A red <b>“late”</b> label means the due date has passed — update the status or post an update so the team knows.<br>• Tapping a notification opens that task directly.<br>• Wrong name or new phone? <b>Me → Change</b>.`],
+  ['❓', 'Questions', `Missing your name, wrong task owner, or need a new project added? Ask the project manager.`]
+];
+
+function renderHelp(){
+  store.set('helpSeen',true);
+  shell('How to use the app','Tiger Trade Follow-up — 1-minute guide');
+  $('main').innerHTML = `<div class="wide">${HELP.map(([ic,t,b],i)=>`
+    <details class="card help" ${i<2?'open':''}><summary><span class="hic">${ic}</span><b>${t}</b><span class="chev">›</span></summary>
+    <div class="hb">${b}</div></details>`).join('')}
+    <div style="height:12px"></div><button class="btn" onclick="go('home')">Got it — take me to my projects</button></div>`;
 }
 
 /* ════════════════ PHONE NOTIFICATIONS ════════════════ */
